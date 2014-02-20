@@ -8,13 +8,12 @@ from twisted.web.server import Site
 from twisted.web.static import File
 from twisted.web.wsgi import WSGIResource
 from twisted.internet import reactor
-from twisted.web.tap import makePersonalServerFactory
+from twisted.web.resource import Resource
 from django.conf import settings
-from django.core.wsgi import get_wsgi_application
 from urlparse import urlparse
 
 class Options(usage.Options):
-    optParameters = [["port", "p", 8080, "The port number to listen on."]]
+    optParameters = [["port", "p", 8000, "The port number to listen on."]]
 
 class TwistedDjangoServiceMaker(object):
     implements(IServiceMaker, IPlugin)
@@ -27,12 +26,15 @@ class TwistedDjangoServiceMaker(object):
         """
         Construct a TCPServer.
         """
+        from django.core.wsgi import get_wsgi_application
         application = get_wsgi_application()
         wsgi_resource = WSGIResource(reactor, reactor.getThreadPool(), application)
-        site = Site(wsgi_resource)
+        root = Resource()
         static_url = getattr(settings, "STATIC_URL", "")
         if static_url and not urlparse(static_url).scheme:
-            site.putChild(static_url, File(settings.STATIC_ROOT))
-        return internet.TCPServer(int(options["port"]), makePersonalServerFactory(site))
+            root.putChild(static_url.lstrip("/"), File(settings.STATIC_ROOT))
+        site = Site(root)
+        root.putChild("", wsgi_resource)
+        return internet.TCPServer(int(options["port"]), site)
 
 serviceMaker = TwistedDjangoServiceMaker()
