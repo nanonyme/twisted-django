@@ -11,6 +11,7 @@ from twisted.internet import reactor
 from twisted.web.resource import Resource, getChildForRequest
 from django.conf import settings
 from urlparse import urlparse
+from twisted.python.filepath import IFilePath
 
 class Options(usage.Options):
     optParameters = [["port", "p", 8000, "The port number to listen on."]]
@@ -21,11 +22,24 @@ class DjangoResource(Resource):
         self.wsgi = wsgi
         self.static = static
 
-    def getChild(self, path, request):
-        resource = getChildForRequest(self.static, request)
-        if not hasattr(resource, "isdir") or resource.isdir() or not resource.exists():
-            resource = self.wsgi
-        return resource
+    def prepareWSGI(self, child, request):
+        request.prepath.pop()
+        request.postpath.insert(0,child)
+        return self.wsgi
+
+    def getChild(self, child, request ):
+        if not self.static:
+            return self.prepareWSGI(child, request)
+        else:
+            resource = getChildForRequest(self.static, request)
+            if not hasattr(resource, "isdir") or resource.isdir() or not resource.exists():
+                return self.prepareWSGI(child, request)
+            else:
+                return resource
+
+    def render( self, request ):
+        """Delegate to the WSGI resource"""
+        return self.wsgi.render( request )
 
 class TwistedDjangoServiceMaker(object):
     implements(IServiceMaker, IPlugin)
