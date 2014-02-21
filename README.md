@@ -16,7 +16,7 @@ Usage
 ==============
 Once having been installed with pip, usage is really simple. Simply add eg
 
-DJANGO_SETTINGS_MODULE=dust.settings twistd -n twisted-django
+DJANGO_SETTINGS_MODULE=django_project.settings twistd -n twisted-django
 
 into your Heroku Procfile. Port can be changed with a parameter -p or --port but the default should be
 fine with Heroku. This package relies on DJANGO_SETTINGS_MODULE being set in the environment. Feel free
