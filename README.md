@@ -16,7 +16,7 @@ setup all your threads (Twisted.web always uses threads for WSGI) will be
 available for the application and statics are delivered in a nonblocking
 fashion.
 
-Another possible use case is to use this together with 
+Additionally you can use this together with 
 https://pypi.python.org/pypi/crochet/; this library calls no_setup for you
 so you can just use crotchet as normal from a Django application and all your
 asynchronic items will be ran in Twisted reactor that's running in the main
