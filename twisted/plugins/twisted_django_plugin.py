@@ -13,6 +13,14 @@ from django.conf import settings
 from urlparse import urlparse
 from twisted.python.filepath import IFilePath
 
+try:
+    import crotchet
+except ImportError:
+    pass
+else:
+    crotchet.no_setup()
+
+
 class Options(usage.Options):
     optParameters = [["port", "p", 8000, "The port number to listen on."]]
 
